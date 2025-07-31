@@ -1,0 +1,62 @@
+# This file was created by running `k0sctl init > k0sctl.yaml`, then `k0s config create > k0sconfig.yaml`, then putting the contents of k0sconfig.yaml inside the k0sctl.yaml under spec.k0s.config.
+
+apiVersion: k0sctl.k0sproject.io/v1beta1
+kind: Cluster
+metadata:
+  name: k0s-template
+  user: admin
+spec:
+  k0s:
+    # https://docs.k0sproject.io/stable/configuration/#configuring-k0s-via-k0sctl
+    config:
+      apiVersion: k0s.k0sproject.io/v1beta1
+      kind: ClusterConfig
+      metadata:
+        name: k0s
+        namespace: kube-system
+      spec:
+        # TODO: Where do we get the IP address? Our posterior orifice? Do we need to manually create DNS record for the externalAddress?
+        # api:
+        #   address: 10.6.3.1
+        #   # https://docs.k0sproject.io/stable/high-availability/#configuration-using-k0sctlyaml-for-k0sctl
+        #   externalAddress: api.k0s-template.6j0.org
+        #   sans:
+        #     - api.k0s-template.6j0.org
+        #     - 10.6.3.1
+        #     # defaults below
+        #     - 192.168.8.134
+        #     - 172.17.0.1
+        #     - 172.18.0.1
+        #     - fd8b:3a08:d04e::d16
+        #     - fd8b:3a08:d04e:0:5dfd:d2ea:ac82:eadb
+        #     - fe80::6e2d:9654:e768:2001
+        #     - fc00:f853:ccd:e793::1
+        # https://docs.k0sproject.io/stable/dual-stack/#using-calico-as-the-cni-provider
+        network:
+          provider: calico
+          # Tomas would like us to get Calico working so we can route across VLANS
+          calico:
+            mode: bird
+          podCIDR: 10.244.0.0/16
+          serviceCIDR: 10.96.0.0/12
+          dualStack:
+            enabled: true
+            IPv6podCIDR: fd00::/108
+            IPv6serviceCIDR: fd01::/108
+        # TODO: Do we have to set this? Why?
+        # storage:
+        #   etcd:
+        #     peerAddress: 10.6.3.1
+    # https://docs.k0sproject.io/stable/upgrade/#upgrade-a-k0s-cluster-using-k0sctl
+    version: 1.32.6+k0s.0
+  # Removing the role.kubernetes.io/control-plane:NoExecute taint so we can run workloads on controller nodes
+  # https://docs.k0sproject.io/stable/worker-node-config/#taints
+  # Uncomment this section and add three controller+worker hosts.
+  # hosts:
+  # - ssh:
+  #     address: host1.6j0.org
+  #     user: ubuntu
+  #     keyPath: ~/.ssh/id_ed25519
+  #   role: controller+worker
+  #   installFlags:
+  #     - --no-taints
