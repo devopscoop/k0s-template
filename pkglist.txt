@@ -1,0 +1,33 @@
+# Arch Linux package list for k0s-template — the pacman/AUR equivalent of the
+# Brewfile. Installs every CLI tool used or referenced by this repo.
+#
+# Note: deploy.sh downloads its own pinned kubectl, k0sctl, and sops binaries
+# into ./bin/ (versions from variables.sh, checksum-verified), so those are
+# deliberately NOT in this manifest. The tools below are the prerequisites
+# deploy.sh itself needs to run. (`sha256sum` and `tar` come from coreutils/tar
+# in the base system.)
+#
+# All packages are in the official repos, so plain pacman works (as do yay/paru):
+#
+# Usage:
+#   grep -vE '^(#|$)' pkglist.txt | sudo pacman -S --needed -
+
+# bash — deploy.sh and variables.sh use `#!/usr/bin/env bash`
+bash
+
+# curl — downloads the pinned kubectl/k0sctl/sops binaries and checksums
+curl
+
+# git — deploy.sh commits and pushes cluster config changes
+git
+
+# go-yq — Go (mikefarah) yq; parses versions and rewrites k0sctl.yaml. Arch's
+# `yq` package is the incompatible Python implementation. Must be
+# pre-installed: deploy.sh invokes yq before its own yq auto-install runs.
+go-yq
+
+# rhash — verifies the yq download checksum
+rhash
+
+# wget — downloads the yq tarball and checksums
+wget
